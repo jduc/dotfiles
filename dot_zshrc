@@ -57,7 +57,7 @@ zstyle ':completion:*:rm:*' file-patterns '*:all-files'
 
 # Aliases
 alias len='wc -l'
-alias refresh='source ~/.zshrc'
+alias refresh='exec zsh'   # re-sourcing re-wraps plugin widgets and can crash the shell
 alias untar='tar -xzvf'
 alias vim='nvim'
 alias t='task'
@@ -69,14 +69,16 @@ bindkey '^?' backward-delete-char
 bindkey '^[[Z' reverse-menu-complete
 bindkey '^K' autosuggest-accept
 
-# ls after every cd
-chpwd() { eza -a --icons | head -50 }
 
-# Plugins (antidote)
-source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
-_antidote="$(brew --prefix)/opt/antidote/share/antidote/antidote.zsh"
+_brew_prefix="$(brew --prefix)"
+
+# Homebrew completion
+FPATH="$_brew_prefix/share/zsh/site-functions:${FPATH}"
+
+# Plugins (antidote). fzf-tab is kind:defer so it loads after compinit and fzf below
+_antidote="$_brew_prefix/opt/antidote/share/antidote/antidote.zsh"
 [[ -f "$_antidote" ]] && source "$_antidote" && antidote load
-unset _antidote
+unset _antidote _brew_prefix
 
 # Completion init (after antidote so plugin completions are on fpath)
 autoload -Uz compinit
@@ -97,5 +99,5 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$HOME/.ghcup/bin:$PATH"
 [ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
 
-# fzf shell integration: **<TAB> completion, Ctrl-T (files), Ctrl-R (history), Alt-C (cd)
+# fzf shell integration: Ctrl-T (files), Ctrl-R (history), Alt-C (cd). Tab is taken over by fzf-tab (deferred)
 source <(fzf --zsh)
